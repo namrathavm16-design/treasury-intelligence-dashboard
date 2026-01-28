@@ -57,7 +57,7 @@ def classify_headline(headline):
 news_items = []
 
 for entry in feed.entries[:10]:
-news_items.append({
+ news_items.append({
     "Headline": entry.title,
     "Published": entry.published if "published" in entry else "—",
     "Source": "Yahoo Finance",
