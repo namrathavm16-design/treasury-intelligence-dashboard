@@ -13,13 +13,13 @@ st.metric("Today's Treasury Risk Score", "42", delta="Stable")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("FX Risk", fx_risk)
+    st.metric("FX Risk", "-")
 
 with col2:
-    st.metric("Interest Rate Risk", rate_risk)
+    st.metric("Interest Rate Risk", "-")
 
 with col3:
-    st.metric("Liquidity Risk", liquidity_risk)
+    st.metric("Liquidity Risk", "-")
 
 st.sidebar.header("Monitoring Controls")
 st.sidebar.selectbox(
@@ -80,5 +80,17 @@ rate_risk = risk_level(category_counts.get("Interest Rates", 0))
 
 # Placeholder logic for liquidity (will evolve later)
 liquidity_risk = "Low"
+st.subheader("Derived Risk Signals")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("FX Risk", fx_risk)
+
+with col2:
+    st.metric("Interest Rate Risk", rate_risk)
+
+with col3:
+    st.metric("Liquidity Risk", liquidity_risk)
 
 st.dataframe(news_df, use_container_width=True)
