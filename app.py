@@ -13,13 +13,13 @@ st.metric("Today's Treasury Risk Score", "42", delta="Stable")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("FX Risk", "Low")
+    st.metric("FX Risk", fx_risk)
 
 with col2:
-    st.metric("Interest Rate Risk", "Medium")
+    st.metric("Interest Rate Risk", rate_risk)
 
 with col3:
-    st.metric("Liquidity Risk", "Low")
+    st.metric("Liquidity Risk", liquidity_risk)
 
 st.sidebar.header("Monitoring Controls")
 st.sidebar.selectbox(
@@ -65,5 +65,20 @@ for entry in feed.entries[:10]:
 })
 
 news_df = pd.DataFrame(news_items)
+# Count category occurrences
+category_counts = news_df["Category"].value_counts()
+def risk_level(count):
+    if count >= 4:
+        return "High"
+    elif count >= 2:
+        return "Medium"
+    else:
+        return "Low"
+
+fx_risk = risk_level(category_counts.get("FX", 0))
+rate_risk = risk_level(category_counts.get("Interest Rates", 0))
+
+# Placeholder logic for liquidity (will evolve later)
+liquidity_risk = "Low"
 
 st.dataframe(news_df, use_container_width=True)
