@@ -38,6 +38,21 @@ rss_url = "https://finance.yahoo.com/rss/topstories"
 
 feed = feedparser.parse(rss_url)
 st.write("Number of news items fetched:", len(feed.entries))
+def classify_headline(headline):
+    headline = headline.lower()
+
+    fx_keywords = ["dollar", "euro", "yen", "currency", "fx", "forex"]
+    rate_keywords = ["rate", "rates", "interest", "yield", "bond", "fed", "ecb"]
+    geo_keywords = ["war", "conflict", "tensions", "sanctions", "geopolitics"]
+
+    if any(word in headline for word in fx_keywords):
+        return "FX"
+    elif any(word in headline for word in rate_keywords):
+        return "Interest Rates"
+    elif any(word in headline for word in geo_keywords):
+        return "Geopolitics"
+    else:
+        return "Other"
 
 news_items = []
 
