@@ -58,9 +58,12 @@ news_items = []
 
 for entry in feed.entries[:10]:
     news_items.append({
-        "Headline": entry.title,
-        "Published": entry.published if "published" in entry else "—",
-        "Source": "Yahoo Finance"
+    "Headline": entry.title,
+    "Published": entry.published if "published" in entry else "—",
+    "Source": "Yahoo Finance",
+    "Category": classify_headline(entry.title)
+})
+
 
     })
 
