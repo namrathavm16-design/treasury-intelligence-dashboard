@@ -45,7 +45,8 @@ for entry in feed.entries[:10]:
     news_items.append({
         "Headline": entry.title,
         "Published": entry.published if "published" in entry else "—",
-        "Source": "Reuters"
+        "Source": "Yahoo Finance"
+
     })
 
 news_df = pd.DataFrame(news_items)
