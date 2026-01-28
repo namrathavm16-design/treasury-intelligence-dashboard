@@ -34,7 +34,7 @@ import pandas as pd
 import feedparser
 
 # Reuters business RSS feed
-rss_url = "https://feeds.reuters.com/reuters/businessNews"
+rss_url = "https://finance.yahoo.com/rss/topstories"
 
 feed = feedparser.parse(rss_url)
 st.write("Number of news items fetched:", len(feed.entries))
