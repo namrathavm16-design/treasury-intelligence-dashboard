@@ -37,6 +37,7 @@ import feedparser
 rss_url = "https://feeds.reuters.com/reuters/businessNews"
 
 feed = feedparser.parse(rss_url)
+st.write("Number of news items fetched:", len(feed.entries))
 
 news_items = []
 
