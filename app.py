@@ -166,6 +166,23 @@ if st.checkbox("Show detailed snapshot history"):
     else:
         st.dataframe(history_df, use_container_width=True, hide_index=True)
 
+if st.checkbox("Show detailed snapshot history"):
+    history_df = pd.DataFrame(st.session_state.risk_history)
+
+    if history_df.empty:
+        st.info("No snapshots recorded yet. Click 'Record Risk Snapshot' to start tracking.")
+    else:
+        st.dataframe(history_df, use_container_width=True, hide_index=True)
+
+        csv = history_df.to_csv(index=False).encode("utf-8")
+
+        st.download_button(
+            label="⬇️ Download Risk History (CSV)",
+            data=csv,
+            file_name="treasury_risk_history.csv",
+            mime="text/csv"
+        )
+
 
 if risk_state == "ALERT":
     st.error("Immediate attention recommended for treasury exposure.")
