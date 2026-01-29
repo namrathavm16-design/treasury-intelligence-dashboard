@@ -155,6 +155,10 @@ st.caption(
 )
 
 st.write(f"{risk_icon} **{risk_message}**")
+
+st.markdown("### 🔎 DEBUG: Risk History Length")
+st.write(len(st.session_state.risk_history))
+
 st.markdown("---")
 st.subheader("Risk History")
 
@@ -163,6 +167,7 @@ if len(st.session_state.risk_history) == 0:
 else:
     history_df = pd.DataFrame(st.session_state.risk_history)
     st.dataframe(history_df, use_container_width=True, hide_index=True)
+
 
 if risk_state == "ALERT":
     st.error("Immediate attention recommended for treasury exposure.")
