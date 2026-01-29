@@ -158,9 +158,6 @@ st.write(f"{risk_icon} **{risk_message}**")
 st.markdown("---")
 st.subheader("Risk History")
 
-st.markdown("---")
-st.subheader("Risk History")
-
 if st.checkbox("Show detailed snapshot history"):
     history_df = pd.DataFrame(st.session_state.risk_history)
 
