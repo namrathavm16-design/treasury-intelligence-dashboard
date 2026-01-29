@@ -156,8 +156,6 @@ st.caption(
 
 st.write(f"{risk_icon} **{risk_message}**")
 
-st.markdown("### 🔎 DEBUG: Risk History Length")
-st.write(len(st.session_state.risk_history))
 
 st.markdown("---")
 st.subheader("Risk History")
