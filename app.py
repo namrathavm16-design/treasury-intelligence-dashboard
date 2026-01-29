@@ -101,6 +101,16 @@ rate_score = risk_score(rate_risk, 40)
 liquidity_score = risk_score(liquidity_risk, 20)
 
 treasury_risk_index = int(fx_score + rate_score + liquidity_score)
+def risk_band(index):
+    if index >= 70:
+        return "ALERT", "🔴", "High risk environment detected"
+    elif index >= 40:
+        return "WATCH", "🟠", "Moderate risk, monitor closely"
+    else:
+        return "STABLE", "🟢", "Low risk environment"
+
+risk_state, risk_icon, risk_message = risk_band(treasury_risk_index)
+
 from datetime import datetime
 
 current_minute = datetime.now().strftime("%H:%M")
@@ -116,8 +126,18 @@ st.subheader("Treasury Risk Index")
 
 st.metric(
     label="Overall Treasury Risk",
-    value=f"{treasury_risk_index} / 100"
+    value=f"{treasury_risk_index} / 100",
+    delta=risk_state
 )
+
+st.write(f"{risk_icon} **{risk_message}**")
+if risk_state == "ALERT":
+    st.error("Immediate attention recommended for treasury exposure.")
+elif risk_state == "WATCH":
+    st.warning("Heightened macro-financial activity detected.")
+else:
+    st.success("Macro-financial environment appears stable.")
+
 st.subheader("Treasury Risk Trend")
 
 history_df = pd.DataFrame(st.session_state.risk_history)
