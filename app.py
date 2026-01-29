@@ -108,6 +108,17 @@ liquidity_score = risk_score(liquidity_risk, 20)
 
 risk_index = int(fx_score + rate_score + liquidity_score)
 
+def risk_band(index):
+    if index >= 70:
+        return "ALERT", "🔴", "High risk environment detected"
+    elif index >= 40:
+        return "WATCH", "🟠", "Moderate risk, monitor closely"
+    else:
+        return "STABLE", "🟢", "Low risk environment"
+
+risk_state, risk_icon, risk_message = risk_band(risk_index)
+
+
 from datetime import datetime
 
 record = st.button("📌 Record Risk Snapshot")
@@ -124,16 +135,6 @@ from datetime import datetime
 if "risk_history" not in st.session_state:
     st.session_state.risk_history = []
 
-
-def risk_band(index):
-    if index >= 70:
-        return "ALERT", "🔴", "High risk environment detected"
-    elif index >= 40:
-        return "WATCH", "🟠", "Moderate risk, monitor closely"
-    else:
-        return "STABLE", "🟢", "Low risk environment"
-
-risk_state, risk_icon, risk_message = risk_band(risk_index)
 
 from datetime import datetime
 
