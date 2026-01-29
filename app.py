@@ -183,4 +183,11 @@ with col3:
 
 filtered_news = news_df[news_df["Category"].isin(selected_category)]
 
-st.dataframe(filtered_news, use_container_width=True)
+display_news = filtered_news[["Headline", "Category", "Source"]]
+
+st.dataframe(
+    display_news,
+    use_container_width=True,
+    hide_index=True
+)
+
