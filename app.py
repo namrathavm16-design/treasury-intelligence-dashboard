@@ -35,6 +35,11 @@ st.sidebar.selectbox(
     "Region Focus",
     ["Global", "United States", "Europe", "Asia"]
 )
+selected_category = st.sidebar.multiselect(
+    "Filter by Risk Category",
+    ["FX", "Interest Rates", "Geopolitics", "Other"],
+    default=["FX", "Interest Rates", "Geopolitics", "Other"]
+)
 
 st.write("System status: Initializing")
 st.subheader("Latest Relevant Financial News")
@@ -170,4 +175,6 @@ with col2:
 with col3:
     st.metric("Liquidity Risk", liquidity_risk)
 
-st.dataframe(news_df, use_container_width=True)
+filtered_news = news_df[news_df["Category"].isin(selected_category)]
+
+st.dataframe(filtered_news, use_container_width=True)
