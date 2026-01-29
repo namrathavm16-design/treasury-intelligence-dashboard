@@ -109,17 +109,24 @@ rate_score = risk_score(rate_risk, 40)
 liquidity_score = risk_score(liquidity_risk, 20)
 
 risk_index = int(fx_score + rate_score + liquidity_score)
+
 from datetime import datetime
 
-if "risk_history" not in st.session_state:
-    st.session_state.risk_history = []
+record = st.button("📌 Record Risk Snapshot")
 
-if st.button("📌 Record Risk Snapshot"):
+if record:
     st.session_state.risk_history.append({
         "time": datetime.now().strftime("%d %b %Y %H:%M"),
         "risk_index": treasury_risk_index,
         "state": risk_state
     })
+
+from datetime import datetime
+
+if "risk_history" not in st.session_state:
+    st.session_state.risk_history = []
+
+
 def risk_band(index):
     if index >= 70:
         return "ALERT", "🔴", "High risk environment detected"
