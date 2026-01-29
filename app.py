@@ -13,6 +13,9 @@ st.set_page_config(
 
 st.title("Treasury Intelligence Dashboard")
 st.subheader("Live Macro-Financial Monitoring System")
+st.markdown("---")
+from datetime import datetime
+st.caption(f"Last updated: {datetime.now().strftime('%d %b %Y, %H:%M')}")
 
 st.metric("Today's Treasury Risk Score", "42", delta="Stable")
 
@@ -123,11 +126,16 @@ if st.session_state.last_recorded_minute != current_minute:
     st.session_state.last_recorded_minute = current_minute
 
 st.subheader("Treasury Risk Index")
+st.markdown("---")
 
 st.metric(
     label="Overall Treasury Risk",
     value=f"{treasury_risk_index} / 100",
     delta=risk_state
+)
+st.caption(
+    "This index reflects the intensity of macro-financial risk based on real-time news concentration. "
+    "It is intended for monitoring purposes, not forecasting or decision-making."
 )
 
 st.write(f"{risk_icon} **{risk_message}**")
@@ -147,7 +155,9 @@ if len(history_df) > 1:
 else:
     st.write("Waiting for more data points to build trend...")
 
-st.subheader("Derived Risk Signals")
+st.subheader("Key Risk Drivers")
+
+st.markdown("---")
 
 col1, col2, col3 = st.columns(3)
 
