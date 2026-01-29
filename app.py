@@ -163,6 +163,12 @@ else:
 st.subheader("Key Risk Drivers")
 
 st.markdown("---")
+st.subheader("Top Risk Contributors")
+
+contributors_df = category_counts.reset_index()
+contributors_df.columns = ["Category", "Number of Headlines"]
+
+st.bar_chart(contributors_df.set_index("Category"))
 
 col1, col2, col3 = st.columns(3)
 
