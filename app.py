@@ -57,12 +57,13 @@ def classify_headline(headline):
 news_items = []
 
 for entry in feed.entries[:10]:
- news_items.append({
-    "Headline": entry.title,
-    "Published": entry.published if "published" in entry else "—",
-    "Source": "Yahoo Finance",
-    "Category": classify_headline(entry.title)
-})
+    news_items.append({
+        "Headline": entry.title,
+        "Published": entry.published if "published" in entry else "—",
+        "Source": "Yahoo Finance",
+        "Category": classify_headline(entry.title)
+    })
+
 
 news_df = pd.DataFrame(news_items)
 # Count category occurrences
@@ -80,6 +81,27 @@ rate_risk = risk_level(category_counts.get("Interest Rates", 0))
 
 # Placeholder logic for liquidity (will evolve later)
 liquidity_risk = "Low"
+# Convert risk levels to scores
+def risk_score(level, weight):
+    if level == "High":
+        return weight
+    elif level == "Medium":
+        return weight * 0.6
+    else:
+        return weight * 0.2
+
+fx_score = risk_score(fx_risk, 40)
+rate_score = risk_score(rate_risk, 40)
+liquidity_score = risk_score(liquidity_risk, 20)
+
+treasury_risk_index = int(fx_score + rate_score + liquidity_score)
+st.subheader("Treasury Risk Index")
+
+st.metric(
+    label="Overall Treasury Risk",
+    value=f"{treasury_risk_index} / 100"
+)
+
 st.subheader("Derived Risk Signals")
 
 col1, col2, col3 = st.columns(3)
