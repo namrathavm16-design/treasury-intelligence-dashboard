@@ -17,7 +17,7 @@ st.markdown("---")
 from datetime import datetime
 st.caption(f"Last updated: {datetime.now().strftime('%d %b %Y, %H:%M')}")
 
-st.metric("Today's Treasury Risk Score", "42", delta="Stable")
+st.metric("Today's Risk Score", "42", delta="Stable")
 
 col1, col2, col3 = st.columns(3)
 
@@ -108,7 +108,7 @@ fx_score = risk_score(fx_risk, 40)
 rate_score = risk_score(rate_risk, 40)
 liquidity_score = risk_score(liquidity_risk, 20)
 
-treasury_risk_index = int(fx_score + rate_score + liquidity_score)
+risk_index = int(fx_score + rate_score + liquidity_score)
 def risk_band(index):
     if index >= 70:
         return "ALERT", "🔴", "High risk environment detected"
@@ -117,7 +117,7 @@ def risk_band(index):
     else:
         return "STABLE", "🟢", "Low risk environment"
 
-risk_state, risk_icon, risk_message = risk_band(treasury_risk_index)
+risk_state, risk_icon, risk_message = risk_band(risk_index)
 
 from datetime import datetime
 
