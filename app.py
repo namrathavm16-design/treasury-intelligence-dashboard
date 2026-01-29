@@ -1,225 +1,141 @@
 import streamlit as st
-# Initialize risk history storage
+import pandas as pd
+import feedparser
+from datetime import datetime
+
+# ---------------- SESSION STATE ----------------
 if "risk_history" not in st.session_state:
     st.session_state.risk_history = []
 
-
-st.set_page_config(
-    page_title="Treasury Intelligence Dashboard",
-    layout="wide"
-)
+# ---------------- PAGE CONFIG ------------------
+st.set_page_config(page_title="Treasury Intelligence Dashboard", layout="wide")
 
 st.title("Treasury Intelligence Dashboard")
 st.subheader("Live Macro-Financial Monitoring System")
-st.markdown("---")
-from datetime import datetime
 st.caption(f"Last updated: {datetime.now().strftime('%d %b %Y, %H:%M')}")
+st.markdown("---")
 
+# ---------------- PLACEHOLDER TOP METRICS ----------------
 st.metric("Today's Risk Score", "42", delta="Stable")
 
-col1, col2, col3 = st.columns(3)
+c1, c2, c3 = st.columns(3)
+c1.metric("FX Risk", "—")
+c2.metric("Interest Rate Risk", "—")
+c3.metric("Liquidity Risk", "—")
 
-with col1:
-    st.metric("FX Risk", "-")
-
-with col2:
-    st.metric("Interest Rate Risk", "-")
-
-with col3:
-    st.metric("Liquidity Risk", "-")
-
+# ---------------- SIDEBAR ----------------
 st.sidebar.header("Monitoring Controls")
-st.sidebar.selectbox(
-    "Region Focus",
-    ["Global", "United States", "Europe", "Asia"]
-)
+st.sidebar.selectbox("Region Focus", ["Global", "United States", "Europe", "Asia"])
+
 selected_category = st.sidebar.multiselect(
     "Filter by Risk Category",
     ["FX", "Interest Rates", "Geopolitics", "Other"],
     default=["FX", "Interest Rates", "Geopolitics", "Other"]
 )
 
-st.write("System status: Initializing")
+# ---------------- NEWS INGESTION ----------------
 st.subheader("Latest Relevant Financial News")
 
-import pandas as pd
-import feedparser
-
-# Reuters business RSS feed
 rss_url = "https://finance.yahoo.com/rss/topstories"
-
 feed = feedparser.parse(rss_url)
-st.write("Number of news items fetched:", len(feed.entries))
-def classify_headline(headline):
-    headline = headline.lower()
 
-    fx_keywords = ["dollar", "euro", "yen", "currency", "fx", "forex"]
-    rate_keywords = ["rate", "rates", "interest", "yield", "bond", "fed", "ecb"]
-    geo_keywords = ["war", "conflict", "tensions", "sanctions", "geopolitics"]
-
-    if any(word in headline for word in fx_keywords):
+def classify_headline(h):
+    h = h.lower()
+    if any(k in h for k in ["dollar", "euro", "yen", "currency", "fx", "forex"]):
         return "FX"
-    elif any(word in headline for word in rate_keywords):
+    if any(k in h for k in ["rate", "rates", "interest", "yield", "bond", "fed", "ecb"]):
         return "Interest Rates"
-    elif any(word in headline for word in geo_keywords):
+    if any(k in h for k in ["war", "conflict", "tensions", "sanctions", "geopolitics"]):
         return "Geopolitics"
-    else:
-        return "Other"
+    return "Other"
 
-news_items = []
-
-for entry in feed.entries[:10]:
-    news_items.append({
-        "Headline": entry.title,
-        "Published": entry.published if "published" in entry else "—",
-        "Source": "Yahoo Finance",
-        "Category": classify_headline(entry.title)
-    })
-
+news_items = [{
+    "Headline": e.title,
+    "Source": "Yahoo Finance",
+    "Category": classify_headline(e.title)
+} for e in feed.entries[:10]]
 
 news_df = pd.DataFrame(news_items)
-# Count category occurrences
-category_counts = news_df["Category"].value_counts()
-def risk_level(count):
-    if count >= 4:
-        return "High"
-    elif count >= 2:
-        return "Medium"
-    else:
-        return "Low"
 
-fx_risk = risk_level(category_counts.get("FX", 0))
-rate_risk = risk_level(category_counts.get("Interest Rates", 0))
+# ---------------- RISK LOGIC ----------------
+counts = news_df["Category"].value_counts()
 
-# Placeholder logic for liquidity (will evolve later)
+def risk_level(c):
+    return "High" if c >= 4 else "Medium" if c >= 2 else "Low"
+
+fx_risk = risk_level(counts.get("FX", 0))
+rate_risk = risk_level(counts.get("Interest Rates", 0))
 liquidity_risk = "Low"
-# Convert risk levels to scores
+
 def risk_score(level, weight):
-    if level == "High":
-        return weight
-    elif level == "Medium":
-        return weight * 0.6
-    else:
-        return weight * 0.2
+    return weight if level == "High" else weight * 0.6 if level == "Medium" else weight * 0.2
 
-fx_score = risk_score(fx_risk, 40)
-rate_score = risk_score(rate_risk, 40)
-liquidity_score = risk_score(liquidity_risk, 20)
+risk_index = int(
+    risk_score(fx_risk, 40) +
+    risk_score(rate_risk, 40) +
+    risk_score(liquidity_risk, 20)
+)
 
-risk_index = int(fx_score + rate_score + liquidity_score)
+def risk_band(i):
+    if i >= 70: return "ALERT", "🔴", "High risk environment detected"
+    if i >= 40: return "WATCH", "🟠", "Moderate risk, monitor closely"
+    return "STABLE", "🟢", "Low risk environment"
 
-def risk_band(index):
-    if index >= 70:
-        return "ALERT", "🔴", "High risk environment detected"
-    elif index >= 40:
-        return "WATCH", "🟠", "Moderate risk, monitor closely"
-    else:
-        return "STABLE", "🟢", "Low risk environment"
+risk_state, risk_icon, risk_msg = risk_band(risk_index)
 
-risk_state, risk_icon, risk_message = risk_band(risk_index)
-
-
-from datetime import datetime
-
-record = st.button("📌 Record Risk Snapshot")
-
-if record:
+# ---------------- SNAPSHOT BUTTON ----------------
+if st.button("📌 Record Risk Snapshot"):
     st.session_state.risk_history.append({
         "time": datetime.now().strftime("%d %b %Y %H:%M"),
         "risk_index": risk_index,
         "state": risk_state
     })
 
-from datetime import datetime
-
-if "risk_history" not in st.session_state:
-    st.session_state.risk_history = []
-
-
-from datetime import datetime
-
-
-st.subheader("Risk Index")
+# ---------------- RISK INDEX ----------------
 st.markdown("---")
+st.subheader("Treasury Risk Index")
 
-st.metric(
-    label="Overall Risk",
-    value=f"{risk_index} / 100",
-    delta=risk_state
-)
-st.caption(
-    "This index reflects the intensity of macro-financial risk based on real-time news concentration. "
-    "It is intended for monitoring purposes, not forecasting or decision-making."
-)
-
-st.write(f"{risk_icon} **{risk_message}**")
-
-
-st.markdown("---")
-st.subheader("Risk History")
-
-if st.checkbox("Show detailed snapshot history"):
-    history_df = pd.DataFrame(st.session_state.risk_history)
-
-    if history_df.empty:
-        st.info("No snapshots recorded yet. Click 'Record Risk Snapshot' to start tracking.")
-    else:
-        st.dataframe(history_df, use_container_width=True, hide_index=True)
-
-        csv = history_df.to_csv(index=False).encode("utf-8")
-
-        st.download_button(
-            label="⬇️ Download Risk History (CSV)",
-            data=csv,
-            file_name="treasury_risk_history.csv",
-            mime="text/csv"
-        )
-
+st.metric("Overall Risk", f"{risk_index} / 100", delta=risk_state)
+st.write(f"{risk_icon} **{risk_msg}**")
 
 if risk_state == "ALERT":
-    st.error("Immediate attention recommended for treasury exposure.")
+    st.error("Immediate attention recommended.")
 elif risk_state == "WATCH":
     st.warning("Heightened macro-financial activity detected.")
 else:
     st.success("Macro-financial environment appears stable.")
 
+# ---------------- TREND ----------------
 st.subheader("Risk Trend")
 
-history_df = pd.DataFrame(st.session_state.risk_history)
-
-if len(history_df) > 1:
-    st.line_chart(history_df.set_index("time")["risk_index"])
+hist_df = pd.DataFrame(st.session_state.risk_history)
+if len(hist_df) > 1:
+    st.line_chart(hist_df.set_index("time")["risk_index"])
 else:
-    st.write("Waiting for more data points to build trend...")
+    st.write("Record snapshots to build a trend.")
 
-st.subheader("Key Risk Drivers")
-
+# ---------------- HISTORY (HIDDEN) ----------------
 st.markdown("---")
+st.subheader("Risk History")
+
+if st.checkbox("Show detailed snapshot history", key="show_history"):
+    if hist_df.empty:
+        st.info("No snapshots recorded yet.")
+    else:
+        st.dataframe(hist_df, use_container_width=True, hide_index=True)
+        st.download_button(
+            "⬇️ Download Risk History (CSV)",
+            hist_df.to_csv(index=False).encode(),
+            "treasury_risk_history.csv",
+            "text/csv"
+        )
+
+# ---------------- DRIVERS ----------------
 st.subheader("Top Risk Contributors")
+drivers = counts.reset_index()
+drivers.columns = ["Category", "Headlines"]
+st.bar_chart(drivers.set_index("Category"))
 
-contributors_df = category_counts.reset_index()
-contributors_df.columns = ["Category", "Number of Headlines"]
-
-st.bar_chart(contributors_df.set_index("Category"))
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("FX Risk", fx_risk)
-
-with col2:
-    st.metric("Interest Rate Risk", rate_risk)
-
-with col3:
-    st.metric("Liquidity Risk", liquidity_risk)
-
-filtered_news = news_df[news_df["Category"].isin(selected_category)]
-
-display_news = filtered_news[["Headline", "Category", "Source"]]
-
-st.dataframe(
-    display_news,
-    use_container_width=True,
-    hide_index=True
-)
-
+# ---------------- NEWS TABLE ----------------
+filtered = news_df[news_df["Category"].isin(selected_category)]
+st.dataframe(filtered, use_container_width=True, hide_index=True)
