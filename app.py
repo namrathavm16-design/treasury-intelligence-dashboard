@@ -158,11 +158,16 @@ st.write(f"{risk_icon} **{risk_message}**")
 st.markdown("---")
 st.subheader("Risk History")
 
-if len(st.session_state.risk_history) == 0:
-    st.info("No snapshots recorded yet. Click 'Record Risk Snapshot' to start tracking.")
-else:
+st.markdown("---")
+st.subheader("Risk History")
+
+if st.checkbox("Show detailed snapshot history"):
     history_df = pd.DataFrame(st.session_state.risk_history)
-    st.dataframe(history_df, use_container_width=True, hide_index=True)
+
+    if history_df.empty:
+        st.info("No snapshots recorded yet. Click 'Record Risk Snapshot' to start tracking.")
+    else:
+        st.dataframe(history_df, use_container_width=True, hide_index=True)
 
 
 if risk_state == "ALERT":
