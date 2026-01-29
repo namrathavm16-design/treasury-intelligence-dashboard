@@ -126,16 +126,16 @@ current_minute = datetime.now().strftime("%H:%M")
 if st.session_state.last_recorded_minute != current_minute:
     st.session_state.risk_history.append({
         "time": current_minute,
-        "risk_index": treasury_risk_index
+        "risk_index": risk_index
     })
     st.session_state.last_recorded_minute = current_minute
 
-st.subheader("Treasury Risk Index")
+st.subheader("Risk Index")
 st.markdown("---")
 
 st.metric(
-    label="Overall Treasury Risk",
-    value=f"{treasury_risk_index} / 100",
+    label="Overall Risk",
+    value=f"{risk_index} / 100",
     delta=risk_state
 )
 st.caption(
@@ -151,7 +151,7 @@ elif risk_state == "WATCH":
 else:
     st.success("Macro-financial environment appears stable.")
 
-st.subheader("Treasury Risk Trend")
+st.subheader("Risk Trend")
 
 history_df = pd.DataFrame(st.session_state.risk_history)
 
