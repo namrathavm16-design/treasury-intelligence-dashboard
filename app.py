@@ -3,6 +3,9 @@ import streamlit as st
 if "risk_history" not in st.session_state:
     st.session_state.risk_history = []
 
+if "last_recorded_minute" not in st.session_state:
+    st.session_state.last_recorded_minute = None
+
 st.set_page_config(
     page_title="Treasury Intelligence Dashboard",
     layout="wide"
@@ -100,10 +103,14 @@ liquidity_score = risk_score(liquidity_risk, 20)
 treasury_risk_index = int(fx_score + rate_score + liquidity_score)
 from datetime import datetime
 
-st.session_state.risk_history.append({
-    "time": datetime.now().strftime("%H:%M:%S"),
-    "risk_index": treasury_risk_index
-})
+current_minute = datetime.now().strftime("%H:%M")
+
+if st.session_state.last_recorded_minute != current_minute:
+    st.session_state.risk_history.append({
+        "time": current_minute,
+        "risk_index": treasury_risk_index
+    })
+    st.session_state.last_recorded_minute = current_minute
 
 st.subheader("Treasury Risk Index")
 
