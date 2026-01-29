@@ -3,8 +3,6 @@ import streamlit as st
 if "risk_history" not in st.session_state:
     st.session_state.risk_history = []
 
-if "last_recorded_minute" not in st.session_state:
-    st.session_state.last_recorded_minute = None
 
 st.set_page_config(
     page_title="Treasury Intelligence Dashboard",
@@ -117,7 +115,7 @@ record = st.button("📌 Record Risk Snapshot")
 if record:
     st.session_state.risk_history.append({
         "time": datetime.now().strftime("%d %b %Y %H:%M"),
-        "risk_index": treasury_risk_index,
+        "risk_index": risk_index,
         "state": risk_state
     })
 
@@ -139,14 +137,6 @@ risk_state, risk_icon, risk_message = risk_band(risk_index)
 
 from datetime import datetime
 
-current_minute = datetime.now().strftime("%H:%M")
-
-if st.session_state.last_recorded_minute != current_minute:
-    st.session_state.risk_history.append({
-        "time": current_minute,
-        "risk_index": risk_index
-    })
-    st.session_state.last_recorded_minute = current_minute
 
 st.subheader("Risk Index")
 st.markdown("---")
