@@ -8,9 +8,9 @@ if "risk_history" not in st.session_state:
     st.session_state.risk_history = []
 
 # ---------------- PAGE CONFIG ------------------
-st.set_page_config(page_title="Treasury Intelligence Dashboard", layout="wide")
+st.set_page_config(page_title="Intelligence Dashboard", layout="wide")
 
-st.title("Treasury Intelligence Dashboard")
+st.title("Intelligence Dashboard")
 st.subheader("Live Macro-Financial Monitoring System")
 st.caption(f"Last updated: {datetime.now().strftime('%d %b %Y, %H:%M')}")
 st.markdown("---")
