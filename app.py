@@ -1,4 +1,7 @@
 import streamlit as st
+# Initialize risk history storage
+if "risk_history" not in st.session_state:
+    st.session_state.risk_history = []
 
 st.set_page_config(
     page_title="Treasury Intelligence Dashboard",
@@ -95,12 +98,27 @@ rate_score = risk_score(rate_risk, 40)
 liquidity_score = risk_score(liquidity_risk, 20)
 
 treasury_risk_index = int(fx_score + rate_score + liquidity_score)
+from datetime import datetime
+
+st.session_state.risk_history.append({
+    "time": datetime.now().strftime("%H:%M:%S"),
+    "risk_index": treasury_risk_index
+})
+
 st.subheader("Treasury Risk Index")
 
 st.metric(
     label="Overall Treasury Risk",
     value=f"{treasury_risk_index} / 100"
 )
+st.subheader("Treasury Risk Trend")
+
+history_df = pd.DataFrame(st.session_state.risk_history)
+
+if len(history_df) > 1:
+    st.line_chart(history_df.set_index("time")["risk_index"])
+else:
+    st.write("Waiting for more data points to build trend...")
 
 st.subheader("Derived Risk Signals")
 
