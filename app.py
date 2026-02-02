@@ -78,8 +78,12 @@ weighted_scores = news_df.groupby("Category")["DecayWeight"].sum()
 def risk_level(c):
     return "High" if c >= 4 else "Medium" if c >= 2 else "Low"
 
-fx_risk = risk_level(weighted_scores.get("FX", 0))
-rate_risk = risk_level(weighted_scores.get("Interest Rates", 0))
+fx_effective = saturated_score(weighted_scores.get("FX", 0))
+rate_effective = saturated_score(weighted_scores.get("Interest Rates", 0))
+
+fx_risk = risk_level(fx_effective)
+rate_risk = risk_level(rate_effective)
+
 liquidity_risk = "Low"
 
 def risk_score(level, weight):
@@ -171,6 +175,11 @@ def confidence_score(news_df, weighted_scores):
         2
     )
 confidence = confidence_score(news_df, weighted_scores)
+
+import numpy as np
+
+def saturated_score(weighted_value):
+    return np.log1p(weighted_value)
 
 st.markdown("### Signal Confidence")
 
