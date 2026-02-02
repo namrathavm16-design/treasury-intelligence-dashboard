@@ -175,6 +175,32 @@ geo_delta = geo_index - base_index
 hawkish_pct = round((hawkish_delta / base_index) * 100, 1) if base_index > 0 else 0
 geo_pct = round((geo_delta / base_index) * 100, 1) if base_index > 0 else 0
 
+
+# ---------------- SNAPSHOT ----------------
+if st.button("📌 Record Risk Snapshot"):
+    st.session_state.risk_history.append({
+        "time": datetime.now(),
+        "risk_index": risk_index,
+        "state": risk_state
+    })
+
+# ---------------- MOMENTUM ----------------
+def risk_delta(history_df, minutes):
+    if len(history_df) < 2:
+        return None
+    cutoff = datetime.now() - pd.Timedelta(minutes=minutes)
+    recent = history_df[history_df["time"] >= cutoff]
+    if len(recent) < 2:
+        return None
+    return recent["risk_index"].iloc[-1] - recent["risk_index"].iloc[0]
+def risk_acceleration(history_df, short_window=30, long_window=60):
+    delta_short = risk_delta(history_df, short_window)
+    delta_long = risk_delta(history_df, long_window)
+
+    if delta_short is None or delta_long is None:
+        return None
+
+    return delta_short - delta_long
 def generate_risk_narrative(
     risk_state,
     fx_pct,
@@ -220,32 +246,6 @@ def generate_risk_narrative(
         narrative += "Signal confidence is high, strengthening this assessment."
 
     return narrative
-
-# ---------------- SNAPSHOT ----------------
-if st.button("📌 Record Risk Snapshot"):
-    st.session_state.risk_history.append({
-        "time": datetime.now(),
-        "risk_index": risk_index,
-        "state": risk_state
-    })
-
-# ---------------- MOMENTUM ----------------
-def risk_delta(history_df, minutes):
-    if len(history_df) < 2:
-        return None
-    cutoff = datetime.now() - pd.Timedelta(minutes=minutes)
-    recent = history_df[history_df["time"] >= cutoff]
-    if len(recent) < 2:
-        return None
-    return recent["risk_index"].iloc[-1] - recent["risk_index"].iloc[0]
-def risk_acceleration(history_df, short_window=30, long_window=60):
-    delta_short = risk_delta(history_df, short_window)
-    delta_long = risk_delta(history_df, long_window)
-
-    if delta_short is None or delta_long is None:
-        return None
-
-    return delta_short - delta_long
 
 
 hist_df = pd.DataFrame(st.session_state.risk_history)
