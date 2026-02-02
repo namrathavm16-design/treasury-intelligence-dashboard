@@ -130,11 +130,21 @@ for source, url in rss_sources.items():
 
         category = classify_headline(e.title)
 
-        news.append({
-            "Headline": e.title,
-            "Category": category,
-            "PublishedTime": t,
-            "Source": source
+        impact_map = {
+    "FX": 1.2,
+    "Interest Rates": 1.3,
+    "Geopolitics": 1.4,
+    "Other": 0.6
+}
+
+news.append({
+    "Headline": e.title,
+    "Category": category,
+    "PublishedTime": t,
+    "Source": source,
+    "ImpactFactor": impact_map.get(category, 0.5)
+})
+
         })
 
 
