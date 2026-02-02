@@ -140,9 +140,24 @@ def compute_risk_index(fx_risk, rate_risk, liquidity_risk, scenario_name):
     )
 
 risk_state, risk_icon, risk_msg = risk_band(risk_index)
+
+fx_contribution = risk_score(fx_risk, 40 * fx_multiplier)
+rate_contribution = risk_score(rate_risk, 40 * rate_multiplier)
+liquidity_contribution = risk_score(liquidity_risk, 20)
+
+total_contribution = (
+    fx_contribution +
+    rate_contribution +
+    liquidity_contribution
+)
+fx_pct = round((fx_contribution / total_contribution) * 100, 1) if total_contribution > 0 else 0
+rate_pct = round((rate_contribution / total_contribution) * 100, 1) if total_contribution > 0 else 0
+liq_pct = round((liquidity_contribution / total_contribution) * 100, 1) if total_contribution > 0 else 0
+
 base_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Base Case")
 hawkish_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Hawkish Fed")
 geo_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Geopolitical Escalation")
+
 hawkish_delta = hawkish_index - base_index
 geo_delta = geo_index - base_index
 
@@ -275,6 +290,22 @@ else:
 
 # ---------------- DRIVERS ----------------
 st.subheader("Top Risk Contributors")
+attr_df = pd.DataFrame({
+    "Risk Component": ["FX", "Interest Rates", "Liquidity"],
+    "Score Contribution": [
+        fx_contribution,
+        rate_contribution,
+        liquidity_contribution
+    ],
+    "Contribution (%)": [
+        fx_pct,
+        rate_pct,
+        liq_pct
+    ]
+})
+
+st.dataframe(attr_df, use_container_width=True, hide_index=True)
+
 drivers = weighted_scores.reset_index()
 drivers.columns = ["Category", "Weighted Impact"]
 st.bar_chart(drivers.set_index("Category"))
