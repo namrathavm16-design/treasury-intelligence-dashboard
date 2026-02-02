@@ -174,15 +174,16 @@ if confidence < 0.6:
 st.subheader("Treasury Risk Index")
 st.info(generate_risk_narrative(state, fx_pct, rate_pct, scenario, delta_60, accel, conf))
 st.metric("Overall Risk", f"{risk_index}/100", state)
-if early_warning:
-    st.error("🚨 EARLY WARNING SIGNAL")
-    for reason in alert_reasons:
-        st.write(f"• {reason}")
-else:
-    st.success("No early warning signals detected.")
+
 
 st.subheader("Top Risk Contributors")
 st.bar_chart(pd.DataFrame({"FX": [fx_pct], "Rates": [rate_pct]}).T)
 
 st.subheader("Latest News")
 st.dataframe(news_df[["Headline", "Category"]], use_container_width=True)
+if early_warning:
+    st.error("🚨 EARLY WARNING SIGNAL")
+    for reason in alert_reasons:
+        st.write(f"• {reason}")
+else:
+    st.success("No early warning signals detected.")
