@@ -122,7 +122,27 @@ def risk_band(i):
         return "WATCH", "🟠", "Moderate risk, monitor closely"
     return "STABLE", "🟢", "Low risk environment"
 
+def compute_risk_index(fx_risk, rate_risk, liquidity_risk, scenario_name):
+    if scenario_name == "Hawkish Fed":
+        fx_m = 1.0
+        rate_m = 1.5
+    elif scenario_name == "Geopolitical Escalation":
+        fx_m = 1.4
+        rate_m = 1.1
+    else:  # Base Case
+        fx_m = 1.0
+        rate_m = 1.0
+
+    return int(
+        risk_score(fx_risk, 40 * fx_m)
+        + risk_score(rate_risk, 40 * rate_m)
+        + risk_score(liquidity_risk, 20)
+    )
+
 risk_state, risk_icon, risk_msg = risk_band(risk_index)
+base_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Base Case")
+hawkish_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Hawkish Fed")
+geo_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Geopolitical Escalation")
 
 # ---------------- SNAPSHOT ----------------
 if st.button("📌 Record Risk Snapshot"):
@@ -209,6 +229,12 @@ else:
 # ---------------- DISPLAY ----------------
 st.markdown("---")
 st.subheader("Treasury Risk Index")
+c1, c2, c3 = st.columns(3)
+
+c1.metric("Base Case", base_index)
+c2.metric("Hawkish Fed", hawkish_index)
+c3.metric("Geopolitical Escalation", geo_index)
+
 st.metric("Overall Risk", f"{risk_index} / 100", delta=risk_state)
 st.write(f"{risk_icon} **{risk_msg}**")
 
