@@ -11,6 +11,13 @@ if "risk_history" not in st.session_state:
 # ---------------- PAGE CONFIG ------------------
 st.set_page_config(page_title="Intelligence Dashboard", layout="wide")
 
+st.markdown("""
+<style>
+.block-container { padding-top: 1.5rem; }
+.metric-label { font-size: 14px; }
+</style>
+""", unsafe_allow_html=True)
+
 # ---------------- SIDEBAR ----------------
 st.sidebar.header("Monitoring Controls")
 
@@ -102,10 +109,33 @@ st.title("Intelligence Dashboard")
 st.caption(f"Last updated: {datetime.now().strftime('%d %b %Y, %H:%M')}")
 st.markdown("---")
 
-feed = feedparser.parse("https://finance.yahoo.com/rss/topstories")
+rss_sources = {
+    "Yahoo Finance": "https://finance.yahoo.com/rss/topstories",
+    "Reuters Business": "https://www.reuters.com/business/finance/rss",
+    "CNBC": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+}
+
 
 news = []
-for e in feed.entries[:10]:
+news = []
+
+for source, url in rss_sources.items():
+    feed = feedparser.parse(url)
+
+    for e in feed.entries[:5]:
+        published_time = (
+            datetime(*e.published_parsed[:6])
+            if hasattr(e, "published_parsed")
+            else datetime.now()
+        )
+
+        news.append({
+            "Headline": e.title,
+            "Category": classify_headline(e.title),
+            "PublishedTime": published_time,
+            "Source": source
+        })
+
     t = datetime(*e.published_parsed[:6]) if hasattr(e, "published_parsed") else datetime.now()
     news.append({
         "Headline": e.title,
