@@ -117,13 +117,12 @@ rss_sources = {
 
 
 news = []
-news = []
 
 for source, url in rss_sources.items():
     feed = feedparser.parse(url)
 
     for e in feed.entries[:5]:
-        published_time = (
+        t = (
             datetime(*e.published_parsed[:6])
             if hasattr(e, "published_parsed")
             else datetime.now()
@@ -131,20 +130,13 @@ for source, url in rss_sources.items():
 
         category = classify_headline(e.title)
 
-impact_map = {
-    "FX": 1.2,
-    "Interest Rates": 1.3,
-    "Geopolitics": 1.4,
-    "Other": 0.6
-}
+        news.append({
+            "Headline": e.title,
+            "Category": category,
+            "PublishedTime": t,
+            "Source": source
+        })
 
-news.append({
-    "Headline": e.title,
-    "Category": category,
-    "PublishedTime": published_time,
-    "Source": source,
-    "ImpactFactor": impact_map.get(category, 0.5)
-})
 
 
     t = datetime(*e.published_parsed[:6]) if hasattr(e, "published_parsed") else datetime.now()
