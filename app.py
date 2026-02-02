@@ -129,12 +129,23 @@ for source, url in rss_sources.items():
             else datetime.now()
         )
 
-        news.append({
-            "Headline": e.title,
-            "Category": classify_headline(e.title),
-            "PublishedTime": published_time,
-            "Source": source
-        })
+        category = classify_headline(e.title)
+
+impact_map = {
+    "FX": 1.2,
+    "Interest Rates": 1.3,
+    "Geopolitics": 1.4,
+    "Other": 0.6
+}
+
+news.append({
+    "Headline": e.title,
+    "Category": category,
+    "PublishedTime": published_time,
+    "Source": source,
+    "ImpactFactor": impact_map.get(category, 0.5)
+})
+
 
     t = datetime(*e.published_parsed[:6]) if hasattr(e, "published_parsed") else datetime.now()
     news.append({
@@ -146,6 +157,15 @@ for source, url in rss_sources.items():
 news_df = pd.DataFrame(news)
 news_df["DecayWeight"] = news_df["PublishedTime"].apply(decay_weight)
 weighted_scores = news_df.groupby("Category")["DecayWeight"].sum()
+news_df["HeadlineImpact"] = (
+    news_df["DecayWeight"] * news_df["ImpactFactor"]
+)
+with st.expander("Why does this matter for treasury?"):
+    st.write("""
+    This section links macro-financial news to potential treasury exposure.
+    FX-related news impacts currency positions, rate news affects funding and
+    valuation, while geopolitical events influence hedging demand and liquidity.
+    """)
 
 # ---------------- RISK COMPUTATION ----------------
 fx_risk = risk_level(saturated_score(weighted_scores.get("FX", 0)))
@@ -210,10 +230,52 @@ st.subheader("Top Risk Contributors")
 st.bar_chart(pd.DataFrame({"FX": [fx_pct], "Rates": [rate_pct]}).T)
 
 st.subheader("Latest News")
-st.dataframe(news_df[["Headline", "Category"]], use_container_width=True)
+st.subheader("News Intelligence")
+
+tab1, tab2, tab3 = st.tabs(["🔥 High Impact", "⚠ Medium Impact", "📰 All News"])
+
+with tab1:
+    st.dataframe(
+        news_df[news_df["Severity"] == "HIGH"]
+        .sort_values("HeadlineImpact", ascending=False)
+        [["Headline", "Category", "Source", "Severity"]],
+        use_container_width=True
+    )
+
+with tab2:
+    st.dataframe(
+        news_df[news_df["Severity"] == "MEDIUM"]
+        .sort_values("HeadlineImpact", ascending=False)
+        [["Headline", "Category", "Source", "Severity"]],
+        use_container_width=True
+    )
+
+with tab3:
+    st.dataframe(
+        news_df[["Headline", "Category", "Source", "Severity"]],
+        use_container_width=True
+    )
+
 if early_warning:
     st.error("🚨 EARLY WARNING SIGNAL")
     for reason in alert_reasons:
         st.write(f"• {reason}")
 else:
     st.success("No early warning signals detected.")
+def severity_label(score):
+    if score >= 1.0:
+        return "HIGH"
+    elif score >= 0.5:
+        return "MEDIUM"
+    else:
+        return "LOW"
+news_df["Severity"] = news_df["HeadlineImpact"].apply(severity_label)
+def affected_assets(category):
+    mapping = {
+        "FX": ["USD/INR", "EUR/USD", "JPY/USD"],
+        "Interest Rates": ["US 10Y Yield", "Fed Funds Rate", "Bond ETFs"],
+        "Geopolitics": ["Gold", "Oil", "Safe-haven FX"],
+        "Other": ["Equities", "Broad Market"]
+    }
+    return ", ".join(mapping.get(category, []))
+news_df["Affected Assets"] = news_df["Category"].apply(affected_assets)
