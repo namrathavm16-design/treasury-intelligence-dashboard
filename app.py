@@ -158,8 +158,9 @@ if st.checkbox("Show detailed snapshot history", key="show_history"):
 
 # ---------------- DRIVERS ----------------
 st.subheader("Top Risk Contributors")
-drivers = counts.reset_index()
-drivers.columns = ["Category", "Headlines"]
+drivers = weighted_scores.reset_index()
+drivers.columns = ["Category", "Weighted Impact"]
+
 st.bar_chart(drivers.set_index("Category"))
 
 # ---------------- NEWS TABLE ----------------
