@@ -117,13 +117,6 @@ def risk_delta(history_df, minutes):
     if len(recent) < 2:
         return None
     return recent["risk_index"].iloc[-1] - recent["risk_index"].iloc[0]
-
-hist_df = pd.DataFrame(st.session_state.risk_history)
-
-delta_60 = risk_delta(hist_df, 60)
-
-acceleration = risk_acceleration(hist_df, 30, 60)
-
 def risk_acceleration(history_df, short_window=30, long_window=60):
     delta_short = risk_delta(history_df, short_window)
     delta_long = risk_delta(history_df, long_window)
@@ -132,6 +125,13 @@ def risk_acceleration(history_df, short_window=30, long_window=60):
         return None
 
     return delta_short - delta_long
+
+
+hist_df = pd.DataFrame(st.session_state.risk_history)
+delta_60 = risk_delta(hist_df, 60)
+
+acceleration = risk_acceleration(hist_df, 30, 60)
+
 
 st.markdown("### Risk Acceleration")
 
