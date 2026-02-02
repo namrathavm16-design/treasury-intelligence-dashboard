@@ -145,6 +145,41 @@ else:
     else:
         st.write("Risk momentum stable.")
 
+def confidence_score(news_df, weighted_scores):
+    # 1. Volume score (more signals = more confidence)
+    total_signals = len(news_df)
+    volume_score = min(total_signals / 10, 1.0)  # cap at 10 headlines
+
+    # 2. Concentration score (dominant category strength)
+    if weighted_scores.sum() == 0:
+        concentration_score = 0
+    else:
+        concentration_score = weighted_scores.max() / weighted_scores.sum()
+
+    # 3. Recency score (how much weight comes from fresh news)
+    recent_weight = news_df.loc[
+        news_df["DecayWeight"] >= 0.6, "DecayWeight"
+    ].sum()
+    total_weight = news_df["DecayWeight"].sum()
+    recency_score = recent_weight / total_weight if total_weight > 0 else 0
+
+    # Final confidence score
+    return round(
+        0.4 * volume_score +
+        0.4 * concentration_score +
+        0.2 * recency_score,
+        2
+    )
+confidence = confidence_score(news_df, weighted_scores)
+
+st.markdown("### Signal Confidence")
+
+if confidence >= 0.75:
+    st.success(f"High confidence in risk signal ({confidence})")
+elif confidence >= 0.5:
+    st.warning(f"Moderate confidence in risk signal ({confidence})")
+else:
+    st.error(f"Low confidence — signal may be noisy ({confidence})")
 
 # ---------------- DISPLAY ----------------
 st.markdown("---")
