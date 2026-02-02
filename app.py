@@ -33,6 +33,11 @@ selected_category = st.sidebar.multiselect(
     default=["FX", "Interest Rates", "Geopolitics", "Other"]
 )
 
+scenario = st.sidebar.selectbox(
+    "Stress Scenario",
+    ["Base Case", "Hawkish Fed", "Geopolitical Escalation"]
+)
+
 # ---------------- NEWS INGESTION ----------------
 st.subheader("Latest Relevant Financial News")
 
@@ -90,12 +95,23 @@ rate_risk = risk_level(rate_effective)
 
 liquidity_risk = "Low"
 
+# -------- Scenario-based weights --------
+if scenario == "Hawkish Fed":
+    fx_multiplier = 1.0
+    rate_multiplier = 1.5
+elif scenario == "Geopolitical Escalation":
+    fx_multiplier = 1.4
+    rate_multiplier = 1.1
+else:  # Base Case
+    fx_multiplier = 1.0
+    rate_multiplier = 1.0
+
 def risk_score(level, weight):
     return weight if level == "High" else weight * 0.6 if level == "Medium" else weight * 0.2
 
 risk_index = int(
-    risk_score(fx_risk, 40)
-    + risk_score(rate_risk, 40)
+    risk_score(fx_risk, 40 * fx_multiplier)
+    + risk_score(rate_risk, 40 * rate_multiplier)
     + risk_score(liquidity_risk, 20)
 )
 
