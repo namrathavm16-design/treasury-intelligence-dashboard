@@ -143,6 +143,11 @@ risk_state, risk_icon, risk_msg = risk_band(risk_index)
 base_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Base Case")
 hawkish_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Hawkish Fed")
 geo_index = compute_risk_index(fx_risk, rate_risk, liquidity_risk, "Geopolitical Escalation")
+hawkish_delta = hawkish_index - base_index
+geo_delta = geo_index - base_index
+
+hawkish_pct = round((hawkish_delta / base_index) * 100, 1) if base_index > 0 else 0
+geo_pct = round((geo_delta / base_index) * 100, 1) if base_index > 0 else 0
 
 # ---------------- SNAPSHOT ----------------
 if st.button("📌 Record Risk Snapshot"):
@@ -234,6 +239,22 @@ c1, c2, c3 = st.columns(3)
 c1.metric("Base Case", base_index)
 c2.metric("Hawkish Fed", hawkish_index)
 c3.metric("Geopolitical Escalation", geo_index)
+
+st.markdown("### Stress Impact vs Base Case")
+
+c4, c5 = st.columns(2)
+
+c4.metric(
+    "Hawkish Fed Impact",
+    f"+{hawkish_delta}",
+    f"{hawkish_pct}%"
+)
+
+c5.metric(
+    "Geopolitical Escalation Impact",
+    f"+{geo_delta}",
+    f"{geo_pct}%"
+)
 
 st.metric("Overall Risk", f"{risk_index} / 100", delta=risk_state)
 st.write(f"{risk_icon} **{risk_msg}**")
