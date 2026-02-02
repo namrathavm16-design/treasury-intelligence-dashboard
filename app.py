@@ -166,7 +166,7 @@ if accel is not None and accel > 0:
     alert_reasons.append("Risk acceleration detected")
 
 # Confidence gate
-if confidence < 0.6:
+if conf < 0.6:
     early_warning = False
     alert_reasons = []
 
