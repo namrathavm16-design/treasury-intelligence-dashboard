@@ -150,10 +150,36 @@ delta_60 = risk_delta(hist_df, 60)
 accel = risk_acceleration(hist_df)
 conf = confidence_score(news_df, weighted_scores)
 
+early_warning = False
+alert_reasons = []
+
+if risk_index >= 65:
+    early_warning = True
+    alert_reasons.append("Risk index elevated")
+
+if delta_60 is not None and delta_60 >= 8:
+    early_warning = True
+    alert_reasons.append("Rapid increase in risk")
+
+if accel is not None and accel > 0:
+    early_warning = True
+    alert_reasons.append("Risk acceleration detected")
+
+# Confidence gate
+if confidence < 0.6:
+    early_warning = False
+    alert_reasons = []
+
 # ---------------- DISPLAY ----------------
 st.subheader("Treasury Risk Index")
 st.info(generate_risk_narrative(state, fx_pct, rate_pct, scenario, delta_60, accel, conf))
 st.metric("Overall Risk", f"{risk_index}/100", state)
+if early_warning:
+    st.error("🚨 EARLY WARNING SIGNAL")
+    for reason in alert_reasons:
+        st.write(f"• {reason}")
+else:
+    st.success("No early warning signals detected.")
 
 st.subheader("Top Risk Contributors")
 st.bar_chart(pd.DataFrame({"FX": [fx_pct], "Rates": [rate_pct]}).T)
