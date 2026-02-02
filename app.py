@@ -196,8 +196,9 @@ fx_pct = round(fx_c / total * 100, 1)
 rate_pct = round(rate_c / total * 100, 1)
 st.subheader("Risk Composition")
 
-fx_score = risk_score(fx_risk, fx_weight)
-rate_score = risk_score(rate_risk, rate_weight)
+fx_score = risk_score(fx_risk, 40)
+rate_score = risk_score(rate_risk, 40)
+
 liq_score = risk_score(liq_risk, 20)
 
 composition_df = pd.DataFrame({
