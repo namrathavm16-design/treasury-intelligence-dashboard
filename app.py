@@ -194,6 +194,18 @@ total = fx_c + rate_c + liq_c
 
 fx_pct = round(fx_c / total * 100, 1)
 rate_pct = round(rate_c / total * 100, 1)
+st.subheader("Risk Composition")
+
+fx_score = risk_score(fx_risk, fx_weight)
+rate_score = risk_score(rate_risk, rate_weight)
+liq_score = risk_score(liq_risk, 20)
+
+composition_df = pd.DataFrame({
+    "Risk Type": ["FX Risk", "Interest Rate Risk", "Liquidity Risk"],
+    "Score Contribution": [fx_score, rate_score, liq_score]
+})
+
+st.bar_chart(composition_df.set_index("Risk Type"))
 
 # ================= HISTORY & SIGNALS =================
 if st.button("📌 Record Risk Snapshot"):
@@ -211,6 +223,12 @@ conf = confidence_score(news_df, weighted_scores)
 st.subheader("Treasury Risk Index")
 st.info(generate_risk_narrative(state, fx_pct, rate_pct, scenario, delta_60, accel, conf))
 st.metric("Overall Risk", f"{risk_index}/100", state)
+if risk_index >= 70:
+    st.error("🔴 High risk environment detected. Immediate treasury attention recommended.")
+elif risk_index >= 40:
+    st.warning("🟠 Moderate risk. Monitor FX and interest rate exposure closely.")
+else:
+    st.success("🟢 Low risk environment. No immediate action required.")
 
 st.subheader("Top Risk Contributors")
 st.bar_chart(pd.DataFrame({"FX": [fx_pct], "Rates": [rate_pct]}).T)
@@ -226,3 +244,12 @@ with tab2:
 
 with tab3:
     st.dataframe(news_df, use_container_width=True)
+with st.expander("How should treasury teams use this dashboard?"):
+    st.write("""
+    • Use the risk index as a daily macro-financial temperature check  
+    • Focus first on HIGH severity headlines  
+    • Monitor changes under different stress scenarios  
+    • Use FX and rate risk signals to inform hedging and funding decisions  
+
+    This tool is designed for **monitoring and early warning**, not prediction.
+    """)
