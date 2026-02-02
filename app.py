@@ -109,6 +109,26 @@ def risk_band(i):
 
 risk_state, risk_icon, risk_msg = risk_band(risk_index)
 
+
+def risk_delta(history_df, minutes):
+    if history_df.empty or len(history_df) < 2:
+        return None
+
+    history_df = history_df.copy()
+    history_df["time"] = pd.to_datetime(history_df["time"])
+
+    delta_30 = risk_delta(hist_df, 30)
+delta_60 = risk_delta(hist_df, 60)
+
+
+    cutoff = datetime.now() - pd.Timedelta(minutes=minutes)
+    recent = history_df[history_df["time"] >= cutoff]
+
+    if len(recent) < 2:
+        return None
+
+    return recent["risk_index"].iloc[-1] - recent["risk_index"].iloc[0]
+
 # ---------------- SNAPSHOT BUTTON ----------------
 if st.button("📌 Record Risk Snapshot"):
     st.session_state.risk_history.append({
@@ -130,6 +150,19 @@ elif risk_state == "WATCH":
     st.warning("Heightened macro-financial activity detected.")
 else:
     st.success("Macro-financial environment appears stable.")
+
+
+st.markdown("### Risk Momentum")
+
+if delta_60 is None:
+    st.write("Not enough snapshot data to calculate momentum.")
+else:
+    arrow = "↑" if delta_60 > 0 else "↓" if delta_60 < 0 else "→"
+    st.metric(
+        label="Δ Risk (last 60 minutes)",
+        value=f"{delta_60:+}",
+        delta=arrow
+    )
 
 # ---------------- TREND ----------------
 st.subheader("Risk Trend")
