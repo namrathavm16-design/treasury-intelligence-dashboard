@@ -122,6 +122,30 @@ hist_df = pd.DataFrame(st.session_state.risk_history)
 
 delta_60 = risk_delta(hist_df, 60)
 
+acceleration = risk_acceleration(hist_df, 30, 60)
+
+def risk_acceleration(history_df, short_window=30, long_window=60):
+    delta_short = risk_delta(history_df, short_window)
+    delta_long = risk_delta(history_df, long_window)
+
+    if delta_short is None or delta_long is None:
+        return None
+
+    return delta_short - delta_long
+
+st.markdown("### Risk Acceleration")
+
+if acceleration is None:
+    st.write("Not enough data to calculate acceleration.")
+else:
+    if acceleration > 0:
+        st.warning(f"⚠ Risk acceleration detected (+{acceleration:.1f})")
+    elif acceleration < 0:
+        st.success(f"Risk pressure easing ({acceleration:.1f})")
+    else:
+        st.write("Risk momentum stable.")
+
+
 # ---------------- DISPLAY ----------------
 st.markdown("---")
 st.subheader("Treasury Risk Index")
