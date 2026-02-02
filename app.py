@@ -141,6 +141,17 @@ def compute_risk_index(fx_risk, rate_risk, liquidity_risk, scenario_name):
 
 risk_state, risk_icon, risk_msg = risk_band(risk_index)
 
+risk_narrative = generate_risk_narrative(
+    risk_state,
+    fx_pct,
+    rate_pct,
+    liq_pct,
+    scenario,
+    delta_60,
+    acceleration,
+    confidence
+)
+
 fx_contribution = risk_score(fx_risk, 40 * fx_multiplier)
 rate_contribution = risk_score(rate_risk, 40 * rate_multiplier)
 liquidity_contribution = risk_score(liquidity_risk, 20)
@@ -163,6 +174,52 @@ geo_delta = geo_index - base_index
 
 hawkish_pct = round((hawkish_delta / base_index) * 100, 1) if base_index > 0 else 0
 geo_pct = round((geo_delta / base_index) * 100, 1) if base_index > 0 else 0
+
+def generate_risk_narrative(
+    risk_state,
+    fx_pct,
+    rate_pct,
+    liq_pct,
+    scenario,
+    delta_60,
+    acceleration,
+    confidence
+):
+    drivers = {
+        "FX": fx_pct,
+        "Interest Rates": rate_pct,
+        "Liquidity": liq_pct
+    }
+
+    top_driver = max(drivers, key=drivers.get)
+
+    narrative = (
+        f"Current treasury risk is assessed as **{risk_state}**, "
+        f"with **{top_driver} risk** as the primary contributor "
+        f"({drivers[top_driver]}%). "
+    )
+
+    if scenario != "Base Case":
+        narrative += (
+            f"This assessment reflects stress conditions under the "
+            f"**{scenario}** scenario. "
+        )
+
+    if delta_60 is not None:
+        if delta_60 > 0:
+            narrative += "Risk momentum is increasing. "
+        elif delta_60 < 0:
+            narrative += "Risk momentum is easing. "
+
+    if acceleration is not None and acceleration > 0:
+        narrative += "Acceleration in risk change suggests emerging pressure. "
+
+    if confidence < 0.5:
+        narrative += "However, signal confidence is low and may reflect noise."
+    elif confidence >= 0.75:
+        narrative += "Signal confidence is high, strengthening this assessment."
+
+    return narrative
 
 # ---------------- SNAPSHOT ----------------
 if st.button("📌 Record Risk Snapshot"):
@@ -249,6 +306,8 @@ else:
 # ---------------- DISPLAY ----------------
 st.markdown("---")
 st.subheader("Treasury Risk Index")
+st.info(risk_narrative)
+
 c1, c2, c3 = st.columns(3)
 
 c1.metric("Base Case", base_index)
