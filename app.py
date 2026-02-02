@@ -143,7 +143,6 @@ news.append({
     "PublishedTime": t,
     "Source": source,
     "ImpactFactor": impact_map.get(category, 0.5)
-}
 
         })
 
