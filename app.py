@@ -49,22 +49,48 @@ def classify_headline(h):
         return "Geopolitics"
     return "Other"
 
-news_items = [{
-    "Headline": e.title,
-    "Source": "Yahoo Finance",
-    "Category": classify_headline(e.title)
-} for e in feed.entries[:10]]
+news_items = []
+
+for e in feed.entries[:10]:
+    if hasattr(e, "published_parsed") and e.published_parsed:
+        published_time = datetime(*e.published_parsed[:6])
+    else:
+        published_time = datetime.now()
+
+    news_items.append({
+        "Headline": e.title,
+        "Source": "Yahoo Finance",
+        "Category": classify_headline(e.title),
+        "PublishedTime": published_time
+    })
+def decay_weight(published_time):
+    age_minutes = (datetime.now() - published_time).total_seconds() / 60
+
+    if age_minutes <= 30:
+        return 1.0
+    elif age_minutes <= 120:
+        return 0.6
+    else:
+        return 0.2
 
 news_df = pd.DataFrame(news_items)
 
 # ---------------- RISK LOGIC ----------------
-counts = news_df["Category"].value_counts()
+news_df["DecayWeight"] = news_df["PublishedTime"].apply(decay_weight)
+
+weighted_scores = (
+    news_df
+    .groupby("Category")["DecayWeight"]
+    .sum()
+)
+
 
 def risk_level(c):
     return "High" if c >= 4 else "Medium" if c >= 2 else "Low"
 
-fx_risk = risk_level(counts.get("FX", 0))
-rate_risk = risk_level(counts.get("Interest Rates", 0))
+fx_risk = risk_level(weighted_scores.get("FX", 0))
+rate_risk = risk_level(weighted_scores.get("Interest Rates", 0))
+
 liquidity_risk = "Low"
 
 def risk_score(level, weight):
